@@ -4,13 +4,15 @@ import './assets/style.css'
 import Game from "./components/Game";
 import {store} from "./components/store";
 import FlappyDunk from "./components/FluppyDunk";
+import Flappy3D from "./components/Flupp3d";
 
 function App() {
     return (
         <>
             <Provider store={store}>
                 {/* <Game /> */}
-                <FlappyDunk />
+                {/* <FlappyDunk /> */}
+                <Flappy3D />
             </Provider>
         </>
     );
