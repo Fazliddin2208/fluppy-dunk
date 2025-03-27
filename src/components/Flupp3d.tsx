@@ -50,9 +50,10 @@ const Flappy3D: React.FC = () => {
     };
   }, []);
 
-  let ball = {x: 100, y: 200, prevY: 200, radius: 20, dy: 0, gravity: 0.02, lift: -1.5};
-  let hoops: {x: number; y: number}[] = [];
+  let ball = {x: 100, y: 200, prevY: 200, radius: 25, dy: 0, gravity: 0.025, lift: -1.7};
+  let hoops: {x: number; y: number; passed: boolean}[] = [];
   let frameCount = 0;
+  let hoopSpeed = 0.4
 
   useEffect(() => {
     if (!imagesLoaded) return;
@@ -70,27 +71,6 @@ const Flappy3D: React.FC = () => {
     hoops = [];
     ball.y = 200;
     ball.dy = 0;
-
-    function isBallHittingHoopEdge(hoop: any) {
-      const edgeOffset = 10; // ✅ 10px chekkaga tegish limiti
-      const leftEdge = hoop.x - hoop.width / 2 + edgeOffset;
-      const rightEdge = hoop.x + hoop.width / 2 - edgeOffset;
-      const ballBottom = ball.y + ball.radius;
-    
-      return (
-        (ball.x >= leftEdge && ball.x <= leftEdge + 5 && ballBottom >= hoop.y) || 
-        (ball.x >= rightEdge - 5 && ball.x <= rightEdge && ballBottom >= hoop.y)
-      );
-    }
-
-    const isBallPassedHoop = (hoop: {x: number; y: number}) => {
-      return (
-        ball.y > hoop.y + 35 && // ✅ To‘p halqaning pastki qismidan o‘tgan
-        ball.prevY < hoop.y + 35 && // ✅ Oldingi joylashuvi hali o‘tmagan edi
-        ball.x + ball.radius > hoop.x && // ✅ X koordinatasi bo‘yicha halqa ichida
-        ball.x - ball.radius < hoop.x + 90
-      );
-    };
 
     const update = () => {
       if (gameOver) return;
@@ -114,40 +94,82 @@ const Flappy3D: React.FC = () => {
           newY = Math.random() * (maxY - minY) + minY;
         }
 
-        hoops.push({x: newX, y: newY});
+        hoops.push({x: newX, y: newY, passed: false});
       }
 
       frameCount++;
 
+      
+
       hoops.forEach((hoop, index) => {
-        hoop.x -= 0.3;
+        
+        hoop.x -= hoopSpeed;
+        const hoopTop = hoop.y + 20; // ✅ Halqaning yuqori chegarasi
+        const hoopBottom = hoop.y + 50; // ✅ Halqaning pastki chegarasi
+        const hoopLeft = hoop.x;
+        const hoopRight = hoop.x + 100;
+        const isBallBehindHoop = ball.prevY < hoopTop && ball.y >= hoopTop && ball.x > hoopLeft && ball.x < hoopRight;
 
         if (hoopBackImg instanceof HTMLImageElement) {
           ctx.drawImage(hoopBackImg, hoop.x, hoop.y - 15, 100, 40);
         }
 
         if (boostingRef.current && fireImg instanceof HTMLImageElement) {
-          ctx.drawImage(fireImg, ball.x - ball.radius * 1.3, ball.y, ball.radius, 30);
+          ctx.drawImage(fireImg, ball.x - ball.radius * 1.25, ball.y + 12, ball.radius, 30);
         }
 
-        if (ballImg instanceof HTMLImageElement) {
-          ctx.drawImage(ballImg, ball.x - ball.radius, ball.y - ball.radius, ball.radius * 2, ball.radius * 2);
+        if (!isBallBehindHoop) {
+          if (ballImg) ctx.drawImage(ballImg, ball.x - ball.radius, ball.y - ball.radius, ball.radius * 2, ball.radius * 2);
         }
+        // if (ballImg instanceof HTMLImageElement) {
+        //   ctx.drawImage(ballImg, ball.x - ball.radius, ball.y - ball.radius, ball.radius * 2, ball.radius * 2);
+        // }
 
         if (hoopFrontImg instanceof HTMLImageElement) {
           ctx.drawImage(hoopFrontImg, hoop.x, hoop.y, 100, 40);
         }
-
-        if (isBallHittingHoopEdge(hoop)) {
-          ball.dy = 0; // ✅ Faqat ikki chekkaga tegsa to‘xtaydi
-          ball.y = hoop.y + 35; // ✅ To‘p halqadan o‘tgan joyda joylashadi
+        if (isBallBehindHoop) {
+          if (ballImg) ctx.drawImage(ballImg, ball.x - ball.radius, ball.y - ball.radius, ball.radius * 2, ball.radius * 2);
         }
-        //  else {
-        //   ball.dy += ball.gravity; // ✅ Gravityni tabiiy holatda saqlaymiz
-        // }
+
+        
+
+        // ✅ Ochko qo‘shish (agar to‘p yuqoridan halqaga kelsa va ichidan o‘tsa)
+        if (!hoop.passed && ball.prevY < hoopTop && ball.y >= hoopTop && ball.x > hoopLeft && ball.x < hoopRight) {
+          hoop.passed = true;
+          setScore(prev => prev + 1);
+        }
+
+        if (
+          (ball.x - 15 <= hoopLeft + 15 && ball.x + 15 > hoopLeft) ||
+          (ball.x + 15 >= hoopRight - 15 && ball.x - 15 < hoopRight)
+        ) {
+          if (ball.y + ball.radius > hoopTop && ball.y - ball.radius < hoopBottom) {
+            ball.dy = ball.lift * 0.7;
+            hoopSpeed = 0.2
+            setTimeout(() => {
+              hoopSpeed = 0.4
+            }, 1000);
+          }
+        }
+
+        
+
+        if (
+          (ball.x - 15 < hoopLeft + 15 && ball.x + 15 > hoopLeft) ||
+          (ball.x + 15 > hoopRight - 15 && ball.x - 15 < hoopRight)
+        ) {
+          if (ball.y + ball.radius >= hoopTop && ball.y - ball.radius <= hoopBottom) {
+            ball.dy = ball.lift * 0.7;
+            hoopSpeed = 0.2
+            setTimeout(() => {
+              hoopSpeed = 0.4
+            }, 1000);
+          }
+        }
       });
 
-      hoops = hoops.filter((hoop) => hoop.x > -50);
+      hoops = hoops.filter((hoop) => hoop.x > -50 && !hoop.passed);
       requestAnimationFrame(update);
     };
     update();
