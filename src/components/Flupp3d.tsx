@@ -1,16 +1,13 @@
 import React, {useEffect, useRef, useState} from "react";
 import BallImg from "./flball.png";
-import FiredBallImg from "./fired_ball.png";
-import FireImg from "./fire.png";
 import HoopFrontImg from "./hoop_front.png";
+import FireImg from "./fire.png";
 import HoopBackImg from "./hoop_back.png";
 
-const FlappyDunk: React.FC = () => {
+const Flappy3D: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [gameOver, setGameOver] = useState(false);
   const [score, setScore] = useState(0);
-
-  // Load hoop front and back images
   const [hoopFrontImg, setHoopFrontImg] = useState<HTMLImageElement | null>(null);
   const [hoopBackImg, setHoopBackImg] = useState<HTMLImageElement | null>(null);
   const [ballImg, setBallImg] = useState<HTMLImageElement | null>(null);
@@ -19,29 +16,20 @@ const FlappyDunk: React.FC = () => {
   const boostingRef = useRef(false);
 
   useEffect(() => {
-    const frontImg = new Image();
     const backImg = new Image();
     const ballImg = new Image();
-    const firedBallImg = new Image();
     const fireImg = new Image();
+    const frontImg = new Image();
 
-    frontImg.src = HoopFrontImg;
     backImg.src = HoopBackImg;
     ballImg.src = BallImg;
-    firedBallImg.src = FiredBallImg;
     fireImg.src = FireImg;
+    frontImg.src = HoopFrontImg;
 
     let loadedCount = 0;
     const checkAllLoaded = () => {
       loadedCount++;
-      if (loadedCount === 4) {
-        setImagesLoaded(true);
-      }
-    };
-
-    frontImg.onload = () => {
-      setHoopFrontImg(frontImg);
-      checkAllLoaded();
+      if (loadedCount === 4) setImagesLoaded(true);
     };
 
     backImg.onload = () => {
@@ -56,14 +44,16 @@ const FlappyDunk: React.FC = () => {
       setFireImg(fireImg);
       checkAllLoaded();
     };
+    frontImg.onload = () => {
+      setHoopFrontImg(frontImg);
+      checkAllLoaded();
+    };
   }, []);
 
-  // Ball properties
-  let ball = {x: 100, y: 200, prevY: 200, radius: 20, dy: 0, gravity: 0.05, lift: -3};
-
-  // Hoops array
-  let hoops: {x: number; y: number}[] = [];
+  let ball = {x: 100, y: 200, prevY: 200, radius: 25, dy: 0, gravity: 0.03, lift: -1.7};
+  let hoops: {x: number; y: number; passed: boolean}[] = [];
   let frameCount = 0;
+  let hoopSpeed = 0.4;
 
   useEffect(() => {
     if (!imagesLoaded) return;
@@ -76,7 +66,6 @@ const FlappyDunk: React.FC = () => {
     canvas.width = 400;
     canvas.height = 500;
 
-    // Reset game state
     setGameOver(false);
     setScore(0);
     hoops = [];
@@ -87,83 +76,86 @@ const FlappyDunk: React.FC = () => {
       if (gameOver) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Ball physics
-      ball.prevY = ball.y; // 🆕 Oldingi joylashuvni saqlaymiz
+      ball.prevY = ball.y;
       ball.dy += ball.gravity;
       ball.y += ball.dy;
+
       if (ball.y + ball.radius > canvas.height) setGameOver(true);
 
       if (frameCount % 100 === 0) {
-        const lastHoop = hoops[hoops.length - 1]; // Oxirgi halqani olish
-        let newX = canvas.width; // Yangi halqa ekrandan tashqarida boshlanadi
-        let newY = Math.random() * (canvas.height - 200) + 100; // Yangi halqa uchun tasodifiy y koordinata
+        const lastHoop = hoops[hoops.length - 1];
+        let newX = canvas.width;
+        let newY = Math.random() * (canvas.height - 200) + 100;
 
         if (lastHoop) {
-          newX = Math.max(lastHoop.x + 200, canvas.width); // X o‘qi bo‘yicha 150px oraliq
-
-          // Y o‘qi bo‘yicha oraliqni ta'minlash
-          const minY = Math.max(lastHoop.y - 150, 100); // Pastga 150px
-          const maxY = Math.min(lastHoop.y + 150, canvas.height - 100); // Yuqoriga 150px
-
-          newY = Math.random() * (maxY - minY) + minY; // Yangi halqa uchun Y koordinata
+          newX = Math.max(lastHoop.x + 200, canvas.width);
+          const minY = Math.max(lastHoop.y - 150, 100);
+          const maxY = Math.min(lastHoop.y + 150, canvas.height - 100);
+          newY = Math.random() * (maxY - minY) + minY;
         }
 
-        hoops.push({x: newX, y: newY});
+        hoops.push({x: newX, y: newY, passed: false});
       }
 
       frameCount++;
 
-      // Draw & move hoops
       hoops.forEach((hoop, index) => {
-        hoop.x -= 1;
-        // Draw BACK side of the hoop first
+        hoop.x -= hoopSpeed;
+        const hoopTop = hoop.y + 20; // ✅ Halqaning yuqori chegarasi
+        const hoopBottom = hoop.y + 50; // ✅ Halqaning pastki chegarasi
+        const hoopLeft = hoop.x;
+        const hoopRight = hoop.x + 100;
+        const isBallBehindHoop = ball.prevY < hoopTop && ball.y >= hoopTop && ball.x > hoopLeft && ball.x < hoopRight;
+
+        console.log(isBallBehindHoop, 'passed: ', hoop.passed);
+
         if (hoopBackImg instanceof HTMLImageElement) {
-          ctx.drawImage(hoopBackImg, hoop.x, hoop.y, 90, 70); // Adjust size as needed
+          ctx.drawImage(hoopBackImg, hoop.x, hoop.y - 15, 100, 40);
         }
 
         if (boostingRef.current && fireImg instanceof HTMLImageElement) {
-          ctx.drawImage(fireImg, ball.x - ball.radius * 1.3, ball.y, ball.radius, 30);
-          console.log("🔥 Fire effect drawn");
-        } else {
-          console.log("❌ Fire image still not ready");
+          ctx.drawImage(fireImg, ball.x - ball.radius * 1.25, ball.y + 12, ball.radius, 30);
         }
 
         if (ballImg instanceof HTMLImageElement) {
           ctx.drawImage(ballImg, ball.x - ball.radius, ball.y - ball.radius, ball.radius * 2, ball.radius * 2);
         }
 
-        // Draw FRONT side of the hoop (on top of the ball)
         if (hoopFrontImg instanceof HTMLImageElement) {
-          ctx.drawImage(hoopFrontImg, hoop.x, hoop.y, 90, 70);
-        } else {
-          console.log("Hoop image not loaded yet, drawing fallback");
+          ctx.drawImage(hoopFrontImg, hoop.x, hoop.y, 100, 40);
         }
 
-        console.log("ball x:", ball.x, "ball y:", ball.y, "prevY:", ball.prevY, "hoop x:", hoop.x, "hoop y:", hoop.y);
-
-        const hoopTop = hoop.y + 10; // ✅ Halqaning yuqori chegarasi
-        const hoopBottom = hoop.y + 50; // ✅ Halqaning pastki chegarasi
-
-        // Collision detection
-        if (
-          //   ball.x + ball.radius > hoop.x &&
-          //   ball.x - ball.radius < hoop.x + 50 &&
-          //   ball.y + ball.radius > hoop.y &&
-          //   ball.y - ball.radius < hoop.y + 10
-
-          ball.x + ball.radius > hoop.x && // ✅ Gorizontal kesishish bor
-          ball.x - ball.radius < hoop.x + 90 && // ✅ To‘p butun halqa ichida
-          ball.prevY + ball.radius < hoopTop && // ✅ To‘p halqaning ustida edi
-          ball.y + ball.radius >= hoopTop && // ✅ Endi esa pastga tushdi
-          ball.y + ball.radius < hoopBottom // ✅ To‘p halqaning ichida
-        ) {
+        // ✅ Ochko qo‘shish (agar to‘p yuqoridan halqaga kelsa va ichidan o‘tsa)
+        if (!hoop.passed && ball.prevY < hoopTop && ball.y >= hoopTop && ball.x > hoopLeft && ball.x < hoopRight) {
+          hoop.passed = true;
           setScore((prev) => prev + 1);
-          hoops.splice(index, 1);
+          console.log("Score:");
+        } else if (
+          (ball.x - 10 <= hoopLeft + 15 && ball.x + 10 > hoopLeft) ||
+          (ball.x + 10 >= hoopRight - 15 && ball.x - 10 < hoopRight)
+        ) {
+          if (ball.y + ball.radius > hoopTop && ball.y - ball.radius < hoopBottom) {
+            ball.dy = ball.lift * 0.7;
+            hoopSpeed = 0.2;
+            setTimeout(() => {
+              hoopSpeed = 0.4;
+            }, 1000);
+          }
+        } else if (
+          (ball.x - 10 < hoopLeft + 15 && ball.x + 10 > hoopLeft) ||
+          (ball.x + 10 > hoopRight - 15 && ball.x - 10 < hoopRight)
+        ) {
+          if (ball.y + ball.radius >= hoopTop && ball.y - ball.radius <= hoopBottom) {
+            ball.dy = ball.lift * 0.7;
+            hoopSpeed = 0.2;
+            setTimeout(() => {
+              hoopSpeed = 0.4;
+            }, 1000);
+          }
         }
       });
-      // Remove off-screen hoops
-      hoops = hoops.filter((hoop) => hoop.x > -50);
 
+      hoops = hoops.filter((hoop) => hoop.x > -50 && !hoop.passed);
       requestAnimationFrame(update);
     };
     update();
@@ -171,13 +163,13 @@ const FlappyDunk: React.FC = () => {
     const handleJump = () => {
       if (!gameOver) {
         ball.dy = ball.lift;
-        boostingRef.current = true; // 🔥 Activate boost effect
-
+        boostingRef.current = true;
         setTimeout(() => {
-          boostingRef.current = false; // ⏳ Remove fire effect after delay
+          boostingRef.current = false;
         }, 200);
       } else window.location.reload();
     };
+
     window.addEventListener("keydown", handleJump);
     window.addEventListener("click", handleJump);
 
@@ -197,4 +189,4 @@ const FlappyDunk: React.FC = () => {
   );
 };
 
-export default FlappyDunk;
+export default Flappy3D;
