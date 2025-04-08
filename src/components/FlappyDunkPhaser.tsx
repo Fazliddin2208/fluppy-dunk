@@ -83,13 +83,13 @@ const Flappy3D: React.FC = () => {
     setScore(0);
 
     const engine = Engine.create();
-    engine.gravity.y = 0.5;
+    engine.gravity.y = 0.2;
     const world = engine.world;
 
     const ball = Bodies.circle(100, 200, 23, {
-      restitution: 0.2,
-      frictionAir: 0.02,
-      mass: 0.5,
+      restitution: 0.3,
+      frictionAir: 0.05,
+      mass: 0.3,
     });
 
     World.add(world, [ball]);
@@ -115,9 +115,9 @@ const Flappy3D: React.FC = () => {
         ctx.drawImage(fireImg, ballX - 23 * 1.25, ballY + 12, 23, 30);
       }
 
-      if (ballImg) {
-        ctx.drawImage(ballImg, ballX - 23, ballY - 23, 46, 46);
-      }
+      // if (ballImg) {
+      //   ctx.drawImage(ballImg, ballX - 23, ballY - 23, 46, 46);
+      // }
 
       frameCount++;
       if (frameCount % 100 === 0) {
@@ -148,27 +148,42 @@ const Flappy3D: React.FC = () => {
           ctx.drawImage(hoopBackImg, hoop.x + 7, hoop.y - 10, 100, 40);
         }
 
-        if (hoopFrontImg instanceof HTMLImageElement) {
-          ctx.drawImage(hoopFrontImg, hoop.x + 7, hoop.y + 10, 100, 40);
-        }
-
         if (hoopLeftImg instanceof HTMLImageElement) {
           ctx.drawImage(hoopLeftImg, hoop.x + 3, hoop.y + 2.5, 15, 37);
         }
 
         if (hoopRightImg instanceof HTMLImageElement) {
-          ctx.drawImage(hoopRightImg, hoop.x + 97, hoop.y + 2.5, 15, 37);
+          ctx.drawImage(hoopRightImg, hoop.x + 94, hoop.y + 2.5, 15, 37);
         }
 
         // To'pni chizish
-        if (
-          ball.position.x > hoopLeft &&
-          ball.position.x < hoopRight &&
-          ball.position.y >= hoopTop &&
-          ball.position.y <= hoopBottom &&
-          ballImg instanceof HTMLImageElement
-        ) {
+        // if (
+        //   ball.position.x > hoopLeft &&
+        //   ball.position.x < hoopRight &&
+        //   ball.position.y >= hoopTop &&
+        //   ball.position.y <= hoopBottom &&
+        //   ballImg instanceof HTMLImageElement
+        // ) {
+        //   ctx.drawImage(ballImg, ballX - 23, ballY - 23, 46, 46);
+        // }
+
+        if (ballImg) {
           ctx.drawImage(ballImg, ballX - 23, ballY - 23, 46, 46);
+        }
+
+        if (hoopFrontImg instanceof HTMLImageElement) {
+          ctx.drawImage(hoopFrontImg, hoop.x + 7, hoop.y + 10, 100, 40);
+        }
+
+        // Ball bounce check (left and right edges of the hoop)
+        if (
+          (ballX > hoopLeft - 23 && ballX < hoopLeft + 23) ||
+          (ballX < hoopRight + 23 && ballX > hoopRight - 23)
+        ) {
+          if (ballY >= hoopTop && ballY <= hoopBottom) {
+            // Ball is close to the hoop edges, apply bounce
+            Body.setVelocity(ball, { x: 0, y: -5 });
+          }
         }
 
         // Ball passed check
@@ -177,11 +192,13 @@ const Flappy3D: React.FC = () => {
           ball.position.y >= hoopTop &&
           ball.position.y < hoopBottom &&
           ball.position.x > hoopLeft &&
-          ball.position.x < hoopRight
+          ball.position.x < hoopRight &&
+          ball.velocity.y > 0 // pastga qarab harakatlanayotgan bo‘lsa
         ) {
           hoop.passed = true;
           setScore((prev) => prev + 1);
         }
+        
       });
       hoops.splice(
         0,
@@ -229,3 +246,39 @@ const Flappy3D: React.FC = () => {
 };
 
 export default Flappy3D;
+
+
+
+// ✅ Ochko qo‘shish (agar to‘p yuqoridan halqaga kelsa va ichidan o‘tsa)
+// if (!hoop.passed && ball.prevY < hoopTop && ball.y >= hoopTop && ball.x > hoopLeft && ball.x < hoopRight) {
+//   hoop.passed = true;
+//   setScore((prev) => prev + 1);
+// } else if (
+//   (ball.x - 10 <= hoopLeft + 15 && ball.x + 10 > hoopLeft) ||
+//   (ball.x + 10 >= hoopRight - 15 && ball.x - 10 < hoopRight)
+// ) {
+//   if (ball.y + ball.radius > hoopTop && ball.y - ball.radius < hoopBottom) {
+//     ball.dy = ball.lift * 0.7;
+//     ball.x = ball.x - 3
+//     console.log('dx: ', ball.dx, ball.x);
+//     // ball.y = hoopTop - ball.radius;
+//     hoopSpeed = 0;
+//     setTimeout(() => {
+//       hoopSpeed = 0.4;
+//     }, 1000);
+//   }
+// } else if (
+//   (ball.x - 10 < hoopLeft + 15 && ball.x + 10 > hoopLeft) ||
+//   (ball.x + 10 > hoopRight - 15 && ball.x - 10 < hoopRight)
+// ) {
+//   if (ball.y + ball.radius >= hoopTop && ball.y - ball.radius <= hoopBottom) {
+//     ball.dy = ball.lift * 0.7;
+//     ball.x = ball.x - 3
+//     console.log('dx: ', ball.dx);
+//     // ball.y = hoopTop - ball.radius;
+//     hoopSpeed = 0;
+//     setTimeout(() => {
+//       hoopSpeed = 0.4;
+//     }, 1000);
+//   }
+// }

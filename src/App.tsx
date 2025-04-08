@@ -15,11 +15,11 @@ function App() {
       <Provider store={store}>
         {/* <Game /> */}
         {/* <FlappyDunk /> */}
-        {/* <Flappy3D /> */}
+        <Flappy3D />
         {/* <FlappyDunk2 /> */}
         {/* <FlappyDunkMatter /> */}
 
-        <FlappyDunkPhaser />
+        {/* <FlappyDunkPhaser /> */}
       </Provider>
     </>
   );
