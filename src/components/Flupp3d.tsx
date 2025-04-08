@@ -3,6 +3,8 @@ import BallImg from "./flball.png";
 import HoopFrontImg from "./hoop_front.png";
 import FireImg from "./fire.png";
 import HoopBackImg from "./hoop_back.png";
+import HoopLeftImg from "./hoop_left.png";
+import HoopRightImg from "./hoop_right.png";
 
 const Flappy3D: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -10,6 +12,8 @@ const Flappy3D: React.FC = () => {
   const [score, setScore] = useState(0);
   const [hoopFrontImg, setHoopFrontImg] = useState<HTMLImageElement | null>(null);
   const [hoopBackImg, setHoopBackImg] = useState<HTMLImageElement | null>(null);
+  const [hoopLeftImg, setHoopLeftImg] = useState<HTMLImageElement | null>(null);
+  const [hoopRightImg, setHoopRightImg] = useState<HTMLImageElement | null>(null);
   const [ballImg, setBallImg] = useState<HTMLImageElement | null>(null);
   const [fireImg, setFireImg] = useState<HTMLImageElement | null>(null);
   const [imagesLoaded, setImagesLoaded] = useState(false);
@@ -19,17 +23,21 @@ const Flappy3D: React.FC = () => {
     const backImg = new Image();
     const ballImg = new Image();
     const fireImg = new Image();
+    const leftImg = new Image();
+    const rightImg = new Image();
     const frontImg = new Image();
 
     backImg.src = HoopBackImg;
     ballImg.src = BallImg;
     fireImg.src = FireImg;
+    leftImg.src = HoopLeftImg;
+    rightImg.src = HoopRightImg;
     frontImg.src = HoopFrontImg;
 
     let loadedCount = 0;
     const checkAllLoaded = () => {
       loadedCount++;
-      if (loadedCount === 4) setImagesLoaded(true);
+      if (loadedCount === 6) setImagesLoaded(true);
     };
 
     backImg.onload = () => {
@@ -44,13 +52,21 @@ const Flappy3D: React.FC = () => {
       setFireImg(fireImg);
       checkAllLoaded();
     };
+    leftImg.onload = () => {
+      setHoopLeftImg(leftImg);
+      checkAllLoaded();
+    };
+    rightImg.onload = () => {
+      setHoopRightImg(rightImg);
+      checkAllLoaded();
+    };
     frontImg.onload = () => {
       setHoopFrontImg(frontImg);
       checkAllLoaded();
     };
   }, []);
 
-  let ball = {x: 100, y: 200, prevY: 200, radius: 25, dy: 0, gravity: 0.03, lift: -1.7};
+  let ball = {x: 100, y: 200, prevY: 200, radius: 23, dx: 0, dy: 0, gravity: 0.03, lift: -1.7, startX: 100};
   let hoops: {x: number; y: number; passed: boolean}[] = [];
   let frameCount = 0;
   let hoopSpeed = 0.4;
@@ -71,6 +87,7 @@ const Flappy3D: React.FC = () => {
     hoops = [];
     ball.y = 200;
     ball.dy = 0;
+    // ball.x += ball.dx;
 
     const update = () => {
       if (gameOver) return;
@@ -79,6 +96,7 @@ const Flappy3D: React.FC = () => {
       ball.prevY = ball.y;
       ball.dy += ball.gravity;
       ball.y += ball.dy;
+      ball.x += ball.dx;
 
       if (ball.y + ball.radius > canvas.height) setGameOver(true);
 
@@ -105,12 +123,9 @@ const Flappy3D: React.FC = () => {
         const hoopBottom = hoop.y + 50; // ✅ Halqaning pastki chegarasi
         const hoopLeft = hoop.x;
         const hoopRight = hoop.x + 100;
-        const isBallBehindHoop = ball.prevY < hoopTop && ball.y >= hoopTop && ball.x > hoopLeft && ball.x < hoopRight;
-
-        console.log(isBallBehindHoop, 'passed: ', hoop.passed);
 
         if (hoopBackImg instanceof HTMLImageElement) {
-          ctx.drawImage(hoopBackImg, hoop.x, hoop.y - 15, 100, 40);
+          ctx.drawImage(hoopBackImg, hoop.x + 7, hoop.y - 10, 100, 40);
         }
 
         if (boostingRef.current && fireImg instanceof HTMLImageElement) {
@@ -121,37 +136,60 @@ const Flappy3D: React.FC = () => {
           ctx.drawImage(ballImg, ball.x - ball.radius, ball.y - ball.radius, ball.radius * 2, ball.radius * 2);
         }
 
-        if (hoopFrontImg instanceof HTMLImageElement) {
-          ctx.drawImage(hoopFrontImg, hoop.x, hoop.y, 100, 40);
+        if (hoopLeftImg instanceof HTMLImageElement) {
+          ctx.drawImage(hoopLeftImg, hoop.x + 3, hoop.y + 2.5, 15, 37);
         }
 
-        // ✅ Ochko qo‘shish (agar to‘p yuqoridan halqaga kelsa va ichidan o‘tsa)
+        if (hoopRightImg instanceof HTMLImageElement) {
+          ctx.drawImage(hoopRightImg, hoop.x + 94, hoop.y + 2.5, 15, 37);
+        }
+
+        if (hoopFrontImg instanceof HTMLImageElement) {
+          ctx.drawImage(hoopFrontImg, hoop.x + 7, hoop.y + 10, 100, 40);
+        }
+
         if (!hoop.passed && ball.prevY < hoopTop && ball.y >= hoopTop && ball.x > hoopLeft && ball.x < hoopRight) {
           hoop.passed = true;
           setScore((prev) => prev + 1);
-          console.log("Score:");
-        } else if (
-          (ball.x - 10 <= hoopLeft + 15 && ball.x + 10 > hoopLeft) ||
-          (ball.x + 10 >= hoopRight - 15 && ball.x - 10 < hoopRight)
-        ) {
-          if (ball.y + ball.radius > hoopTop && ball.y - ball.radius < hoopBottom) {
-            ball.dy = ball.lift * 0.7;
-            hoopSpeed = 0.2;
-            setTimeout(() => {
-              hoopSpeed = 0.4;
-            }, 1000);
+        } else {
+          const leftHalf = hoopLeft + 15; // Chap yarmi
+          const rightHalf = hoopRight - 15; // O‘ng yarmi
+
+          if (
+            (ball.x - 10 <= leftHalf && ball.x + 10 > hoopLeft) ||
+            (ball.x + 10 >= rightHalf && ball.x - 10 < hoopRight)
+          ) {
+            if (ball.y + ball.radius > hoopTop && ball.y - ball.radius < hoopBottom) {
+              ball.dy = ball.lift * 0.7;
+              hoopSpeed = 0.2;
+
+              // 🏀 **Agar top chap chetning 1-yarmiga tegsa (orqaga qaytishi kerak)**
+              if (ball.x < hoopLeft + 7.5) {
+                hoopSpeed = -0.2;
+                setTimeout(() => {
+                  hoopSpeed = 0.4;
+                }, 700);
+              }
+
+              // 🏀 **Agar top o‘ng chetning 1-yarmiga tegsa (orqaga qaytishi kerak)**
+              if (ball.x > hoopRight - 12 && ball.x < hoopRight - 6) {
+                hoopSpeed = -0.2;
+                setTimeout(() => {
+                  hoopSpeed = 0.4;
+                }, 300);
+              }
+              setTimeout(() => {
+                hoopSpeed = 0.4;
+              }, 1000);
+            }
           }
-        } else if (
-          (ball.x - 10 < hoopLeft + 15 && ball.x + 10 > hoopLeft) ||
-          (ball.x + 10 > hoopRight - 15 && ball.x - 10 < hoopRight)
+
+        }
+        if (
+          ball.prevY > hoopBottom && ball.y <= hoopBottom && ball.x > hoopLeft && ball.x < hoopRight
         ) {
-          if (ball.y + ball.radius >= hoopTop && ball.y - ball.radius <= hoopBottom) {
-            ball.dy = ball.lift * 0.7;
-            hoopSpeed = 0.2;
-            setTimeout(() => {
-              hoopSpeed = 0.4;
-            }, 1000);
-          }
+          // ball.dy = Math.abs(ball.dy); // 🔥 Pastga tushish uchun dy ijobiy bo‘lishi kerak
+          console.log("past");
         }
       });
 
@@ -190,3 +228,4 @@ const Flappy3D: React.FC = () => {
 };
 
 export default Flappy3D;
+
