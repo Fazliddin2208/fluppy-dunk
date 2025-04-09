@@ -6,7 +6,7 @@ import HoopBackImg from "./hoop_back.png";
 import HoopLeftImg from "./hoop_left.png";
 import HoopRightImg from "./hoop_right.png";
 
-const Flappy3D: React.FC = () => {
+const FlappyFinal: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [gameOver, setGameOver] = useState(false);
   const [score, setScore] = useState(0);
@@ -120,21 +120,18 @@ const Flappy3D: React.FC = () => {
       hoops.forEach((hoop, index) => {
         hoop.x -= hoopSpeed;
         const hoopTop = hoop.y + 20; // ✅ Halqaning yuqori chegarasi
-        const hoopBottom = hoop.y + 30; // ✅ Halqaning pastki chegarasi
-        const hoopLeft = hoop.x;
-        const hoopRight = hoop.x + 100;
+        const hoopBottom = hoop.y; // ✅ Halqaning pastki chegarasi
+        const hoopLeft = hoop.x - 50;
+        const hoopRight = hoop.x + 50;
+        const ballTop = ball.y - ball.radius;
+        const ballBottom = ball.y + ball.radius;
+        const ballLeft = ball.x - ball.radius;
+        const ballRight = ball.x + ball.radius;
 
-        if (hoopFrontImg instanceof HTMLImageElement) {
-          ctx.drawImage(hoopFrontImg, hoop.x + 7, hoop.y + 10, 100, 40);
-        }
+        // if (hoopBackImg instanceof HTMLImageElement) {
+        //   ctx.drawImage(hoopBackImg, hoop.x + 7, hoop.y - 10, 100, 40);
+        // }
 
-        if (boostingRef.current && fireImg instanceof HTMLImageElement) {
-          ctx.drawImage(fireImg, ball.x - ball.radius * 1.25, ball.y + 12, ball.radius, 30);
-        }
-
-        if (ballImg instanceof HTMLImageElement) {
-          ctx.drawImage(ballImg, ball.x - ball.radius, ball.y - ball.radius, ball.radius * 2, ball.radius * 2);
-        }
         if (hoopLeftImg instanceof HTMLImageElement) {
           ctx.drawImage(hoopLeftImg, hoop.x + 3, hoop.y + 2.5, 15, 37);
         }
@@ -143,95 +140,25 @@ const Flappy3D: React.FC = () => {
           ctx.drawImage(hoopRightImg, hoop.x + 94, hoop.y + 2.5, 15, 37);
         }
 
-
-        if (hoopBackImg instanceof HTMLImageElement) {
-          ctx.globalCompositeOperation = "destination-over";
-          ctx.drawImage(hoopBackImg, hoop.x + 7, hoop.y - 10, 100, 40);
+        if (hoopFrontImg instanceof HTMLImageElement) {
+          ctx.drawImage(hoopFrontImg, hoop.x + 7, hoop.y + 10, 100, 40);
+        }
+        if (boostingRef.current && fireImg instanceof HTMLImageElement) {
+          ctx.drawImage(fireImg, ball.x - ball.radius * 1.25, ball.y + 12, ball.radius, 30);
         }
 
-        
+        if (ballImg instanceof HTMLImageElement) {
+          ctx.drawImage(ballImg, ball.x - ball.radius, ball.y - ball.radius, ball.radius * 2, ball.radius * 2);
+        }
 
-        if (!hoop.passed && ball.prevY < hoopTop && ball.y >= hoopTop && ball.x > hoopLeft && ball.x < hoopRight) {
-          setTimeout(()=>{
-            hoop.passed = true;
-            setScore((prev) => prev + 1);
-          }, 100)
-        } else {
-          const leftHalf = hoopLeft + 7.5; // Chap yarmi
-          const rightHalf = hoopRight - 7.5; // O‘ng yarmi
+        // collision
 
+        if (ballTop <= hoopBottom && ballBottom > hoopTop && ballRight > hoopLeft && ballLeft < hoopRight) {
+          // Agar top halqaning o‘rtasida yoki pastki qismiga tegsa, to‘qnashuv
           if (ball.prevY > ball.y) {
-            if (
-              (ball.x - 10 <= leftHalf && ball.x + 10 > hoopLeft) ||
-              (ball.x + 10 >= rightHalf && ball.x - 10 < hoopRight)
-            ) {
-              console.log('pastdan');
-              if (ball.y + ball.radius > hoopTop && ball.y - ball.radius < hoopBottom) {
-                ball.dy = -ball.lift * 0.2;
-                hoopSpeed = 0.2;
-
-                
-
-                // 🏀 **Agar top chap chetning 1-yarmiga tegsa (orqaga qaytishi kerak)**
-                if (ball.x < hoopLeft + 7.5) {
-                  ball.dy = -ball.lift * 0.2;
-                  hoopSpeed = 0.2;
-                  setTimeout(() => {
-                    hoopSpeed = 0.4;
-                  }, 700);
-                }
-
-                // 🏀 **Agar top o‘ng chetning 1-yarmiga tegsa (orqaga qaytishi kerak)**
-                if (ball.x > hoopRight - 12 && ball.x < hoopRight - 6) {
-                  ball.dy = -ball.lift * 0.2;
-                  hoopSpeed = 0.2;
-                  setTimeout(() => {
-                    hoopSpeed = 0.4;
-                  }, 300);
-                }
-                setTimeout(() => {
-                  hoopSpeed = 0.4;
-                }, 1000);
-              }
-            }
-          } else {
-            console.log('tepadan');
-            if (
-              (ball.x - 10 <= leftHalf && ball.x + 10 > hoopLeft) ||
-              (ball.x + 10 >= rightHalf && ball.x - 10 < hoopRight)
-            ) {
-              if (ball.y + ball.radius > hoopTop && ball.y - ball.radius < hoopBottom) {
-                ball.dy = ball.lift * 0.7;
-                // hoopSpeed = 0.2;
-
-                // 🏀 **Agar top chap chetning 1-yarmiga tegsa (orqaga qaytishi kerak)**
-                if (ball.x < hoopLeft + 7.5) {
-                  hoopSpeed = -0.2;
-                  setTimeout(() => {
-                    hoopSpeed = 0.4;
-                  }, 700);
-                }
-
-                // 🏀 **Agar top o‘ng chetning 1-yarmiga tegsa (orqaga qaytishi kerak)**
-                if (ball.x > hoopRight - 12 && ball.x < hoopRight - 6) {
-                  hoopSpeed = -0.2;
-                  setTimeout(() => {
-                    hoopSpeed = 0.4;
-                  }, 300);
-                }
-                setTimeout(() => {
-                  hoopSpeed = 0.4;
-                }, 1000);
-              }
-            }
+            // Top halqaning pastki chetiga urildi
+            ball.dy = -ball.lift * 0.2; // Topni yuqoriga qarab turishi uchun
           }
-        }
-        if (ball.prevY > hoopBottom && ball.y <= hoopBottom && ball.x > hoopLeft && ball.x < hoopRight) {
-          ball.dy = -ball.lift * 0.07;
-          hoopSpeed = 0.2;
-          setTimeout(() => {
-            hoopSpeed = 0.4;
-          }, 700);
         }
       });
 
@@ -269,4 +196,4 @@ const Flappy3D: React.FC = () => {
   );
 };
 
-export default Flappy3D;
+export default FlappyFinal;
