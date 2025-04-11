@@ -8,6 +8,7 @@ import Flappy3D from "./components/Flupp3d";
 import FlappyDunk2 from "./components/FluppyPixi";
 import FlappyDunkMatter from "./components/Matter";
 import FlappyDunkPhaser from "./components/FlappyDunkPhaser";
+import FlappyFinal from "./components/Final";
 
 function App() {
   return (
@@ -20,6 +21,9 @@ function App() {
         {/* <FlappyDunkMatter /> */}
 
         {/* <FlappyDunkPhaser /> */}
+
+        {/* Final */}
+        {/* <FlappyFinal /> */}
       </Provider>
     </>
   );
