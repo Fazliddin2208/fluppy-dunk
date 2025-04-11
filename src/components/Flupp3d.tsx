@@ -101,7 +101,7 @@ const Flappy3D: React.FC = () => {
   };
   let hoops: {x: number; y: number; passed: boolean; hitEdge: boolean}[] = [];
   let frameCount = 0;
-  let hoopSpeed = 0.4;
+  let hoopSpeed = 0.7;
 
   const cleanStreakRef = useRef(0); // yangi ref
   const effectRef = useRef<number | null>(null); // yangi ref
@@ -257,17 +257,17 @@ const Flappy3D: React.FC = () => {
 
         // collision
 
-        if (
-          ball.y >= hoop.y + ball.height / 5 &&
-          ball.y <= ball.height / 5 + ball.height / 2 &&
-          ball.x + 45 >= hoop.x - 5
-        ) {
-          hoopSpeed = -2;
-          ball.dy = -ball.lift * 2;
-          setTimeout(() => {
-            hoopSpeed = 0.4;
-          }, 700);
-        }
+        // if (
+        //   ball.y >= hoop.y + ball.height / 5 &&
+        //   ball.y <= ball.height / 5 + ball.height / 2 &&
+        //   ball.x + 45 >= hoop.x - 5
+        // ) {
+        //   hoopSpeed = -2;
+        //   ball.dy = -ball.lift * 2;
+        //   setTimeout(() => {
+        //     hoopSpeed = 0.7;
+        //   }, 700);
+        // }
 
         if (!hoop.passed && ball.prevY < hoopTop && ball.y >= hoopTop && ball.x > hoopLeft && ball.x < hoopRight) {
           if (!hoop.hitEdge) {
@@ -290,9 +290,9 @@ const Flappy3D: React.FC = () => {
             if (isCollisionByY && ball.x + 22.5 >= hoop.x - 8 && ball.x + 22.5 <= hoop.x + 10) {
               ball.dy = -ball.lift * 0.04;
               hoop.hitEdge = true;
-              hoopSpeed = -0.4;
+              hoopSpeed = -0.7;
               setTimeout(() => {
-                hoopSpeed = 0.4;
+                hoopSpeed = 0.7;
               }, 700);
             } else if (isCollisionByY && ball.x + 22.5 > hoop.x + 10 && ball.x + 22.5 <= hoop.x + 28) {
               ball.dy = -ball.lift * 0.04;
@@ -311,22 +311,25 @@ const Flappy3D: React.FC = () => {
               // left first edge
               ball.dy = ball.lift * 0.7;
               hoop.hitEdge = true;
-              hoopSpeed = -0.4;
+              hoopSpeed = -0.7;
               setTimeout(() => {
-                hoopSpeed = 0.4;
+                hoopSpeed = 0.7;
               }, 700);
             } else if (isCollisionByY && ball.x + 22.5 > hoop.x + 10 && ball.x + 22.5 <= hoop.x + 28) {
               // left second edge
               ball.dy = ball.lift * 0.7;
               hoop.hitEdge = true;
               hoopSpeed = 0.4;
+              setTimeout(() => {
+                hoopSpeed = 0.7;
+              }, 700);
             } else if (isCollisionByY && ball.x + 22.5 >= hoop.x + 82 && ball.x + 22.5 <= hoop.x + 100) {
               // right first edge
               ball.dy = ball.lift * 0.7;
               hoop.hitEdge = true;
               hoopSpeed = -0.4;
               setTimeout(() => {
-                hoopSpeed = 0.4;
+                hoopSpeed = 0.7;
               }, 700);
             } else if (isCollisionByY && ball.x + 22.5 > hoop.x + 100 && ball.x + 22.5 <= hoop.x + 118) {
               // right second edge
@@ -336,7 +339,7 @@ const Flappy3D: React.FC = () => {
           }
         }
         if (ball.prevY > hoopBottom && ball.y <= hoopBottom && ball.x > hoopLeft && ball.x < hoopRight) {
-          ball.dy = -ball.lift * 0.4;
+          ball.dy = -ball.lift * 0.7;
         }
       });
 
@@ -369,7 +372,7 @@ const Flappy3D: React.FC = () => {
       <h2>Flappy Dunk</h2>
       <p>Score: {score}</p>
       <p>Clean Streak: {cleanStreak}</p>
-      {imagesLoaded && <canvas ref={canvasRef} style={{border: "2px solid black"}} />}
+      {imagesLoaded && <canvas ref={canvasRef}  />}
       {gameOver && <h2>Game Over! Click to Restart</h2>}
     </div>
   );
