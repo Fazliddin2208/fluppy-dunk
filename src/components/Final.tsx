@@ -122,11 +122,19 @@ const FlappyFinal: React.FC = () => {
         const hoopTop = hoop.y + 20; // ✅ Halqaning yuqori chegarasi
         const hoopBottom = hoop.y; // ✅ Halqaning pastki chegarasi
         const hoopLeft = hoop.x - 50;
+        const hoopLeftMid = hoop.x - 42.5;
+        const hoopLeft2 = hoop.x - 35;
         const hoopRight = hoop.x + 50;
+        const hoopRightMid = hoop.x + 42.5;
+        const hoopRight2 = hoop.x + 35;
         const ballTop = ball.y - ball.radius;
         const ballBottom = ball.y + ball.radius;
         const ballLeft = ball.x - ball.radius;
         const ballRight = ball.x + ball.radius;
+        const ballLeftEdgeX = ball.x - ball.radius / Math.SQRT2;
+        const ballRightEdgeX = ball.x + ball.radius / Math.SQRT2;
+        const ballBottomEdgeY = ball.y - ball.radius / Math.SQRT2;
+        const ballTopEdgeY = ball.y + ball.radius / Math.SQRT2;
 
         // if (hoopBackImg instanceof HTMLImageElement) {
         //   ctx.drawImage(hoopBackImg, hoop.x + 7, hoop.y - 10, 100, 40);
@@ -140,9 +148,9 @@ const FlappyFinal: React.FC = () => {
           ctx.drawImage(hoopRightImg, hoop.x + 94, hoop.y + 2.5, 15, 37);
         }
 
-        if (hoopFrontImg instanceof HTMLImageElement) {
-          ctx.drawImage(hoopFrontImg, hoop.x + 7, hoop.y + 10, 100, 40);
-        }
+        // if (hoopFrontImg instanceof HTMLImageElement) {
+        //   ctx.drawImage(hoopFrontImg, hoop.x + 7, hoop.y + 10, 100, 40);
+        // }
         if (boostingRef.current && fireImg instanceof HTMLImageElement) {
           ctx.drawImage(fireImg, ball.x - ball.radius * 1.25, ball.y + 12, ball.radius, 30);
         }
@@ -152,14 +160,41 @@ const FlappyFinal: React.FC = () => {
         }
 
         // collision
-
-        if (ballTop <= hoopBottom && ballBottom > hoopTop && ballRight > hoopLeft && ballLeft < hoopRight) {
-          // Agar top halqaning o‘rtasida yoki pastki qismiga tegsa, to‘qnashuv
-          if (ball.prevY > ball.y) {
-            // Top halqaning pastki chetiga urildi
-            ball.dy = -ball.lift * 0.2; // Topni yuqoriga qarab turishi uchun
-          }
+        // halqa ichidan otishi
+        if (!hoop.passed && ball.prevY < hoop.y && ball.y >= hoop.y && hoopLeft < ball.x && hoopRight > ball.x) {
+          setTimeout(() => {
+            hoop.passed = true;
+            setScore((prev) => prev + 1);
+          }, 100);
         }
+
+        // tepadan pastga
+        if(ball.prevY < hoop.y){
+          console.log('tepadan');
+          
+        }else{
+          console.log('pastdan');
+          
+        }
+        // chap taraf 1-qism
+        if (
+          ballRight > hoopLeft &&
+          ballLeft < hoopLeftMid &&
+          ball.prevY < hoop.y &&  // to‘p tepada bo‘lgan
+          ball.y >= hoop.y        // va pastga tushayotgan
+        ) {
+          ball.dy = ball.lift;
+          hoopSpeed = -0.4;
+        
+          setTimeout(() => {
+            hoopSpeed = 0.4;
+          }, 300);
+        }
+        
+
+        
+
+        
       });
 
       hoops = hoops.filter((hoop) => hoop.x > -50 && !hoop.passed);
