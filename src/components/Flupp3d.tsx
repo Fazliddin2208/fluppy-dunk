@@ -18,8 +18,8 @@ const Flappy3D: React.FC = () => {
   const [hoopRightImg, setHoopRightImg] = useState<HTMLImageElement | null>(null);
   const [ballImg, setBallImg] = useState<HTMLImageElement | null>(null);
   const [fireImg, setFireImg] = useState<HTMLImageElement | null>(null);
-  const [fireworkImg, setFireworkImg] = useState<HTMLImageElement | null>(null);
-  const [ringFireImg, setRingFireImg] = useState<HTMLImageElement | null>(null);
+  // const [fireworkImg, setFireworkImg] = useState<HTMLImageElement | null>(null);
+  // const [ringFireImg, setRingFireImg] = useState<HTMLImageElement | null>(null);
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const boostingRef = useRef(false);
 
@@ -47,7 +47,7 @@ const Flappy3D: React.FC = () => {
     let loadedCount = 0;
     const checkAllLoaded = () => {
       loadedCount++;
-      if (loadedCount === 8) setImagesLoaded(true);
+      if (loadedCount === 6) setImagesLoaded(true);
     };
 
     backImg.onload = () => {
@@ -75,15 +75,15 @@ const Flappy3D: React.FC = () => {
       checkAllLoaded();
     };
 
-    fireworkImg.onload = () => {
-      setFireworkImg(fireworkImg);
-      checkAllLoaded();
-    };
+    // fireworkImg.onload = () => {
+    //   setFireworkImg(fireworkImg);
+    //   checkAllLoaded();
+    // };
 
-    ringFireImg.onload = () => {
-      setRingFireImg(ringFireImg);
-      checkAllLoaded();
-    };
+    // ringFireImg.onload = () => {
+    //   setRingFireImg(ringFireImg);
+    //   checkAllLoaded();
+    // };
   }, []);
 
   let ball = {
@@ -141,8 +141,7 @@ const Flappy3D: React.FC = () => {
 
   const checkBallPassed = (hoops: any, hoop: any, index: number) => {
     console.log(hoops, hoop, index);
-    
-  }
+  };
 
   useEffect(() => {
     if (!imagesLoaded) return;
@@ -281,7 +280,7 @@ const Flappy3D: React.FC = () => {
           setTimeout(() => {
             hoop.passed = true;
             setScore((prev) => prev + 1);
-            checkBallPassed(hoops, hoop, index)
+            checkBallPassed(hoops, hoop, index);
           }, 200);
         } else {
           if (ball.prevY > ball.y) {
